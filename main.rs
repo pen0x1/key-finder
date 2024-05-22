@@ -1,5 +1,5 @@
 use std::env;
-use std::io::{self, Write};
+use std::io::{self, Read, Write};
 use std::net::TcpStream;
 use std::str;
 
@@ -15,6 +15,7 @@ fn main() {
         std::io::stdin()
             .read_line(&mut choice)
             .expect("Failed to read line");
+
         match choice.trim() {
             "1" => {
                 if let Err(e) = recover_keys(&server_address) {
@@ -38,8 +39,14 @@ fn print_guide() {
 fn recover_keys(server_address: &str) -> Result<(), Box<dyn std::error::Error>> {
     println!("Enter your email associated with the keys:");
     let mut email = String::new();
-    io::stdin().read_line(&mut email).expect("Failed to read line");
+    io::stdin().read_line(&mut email)?;
     let email = email.trim(); 
+
+    if !email.contains('@') {
+        eprintln!("Invalid email format. Please try again.");
+        return Ok(());
+    }
+
     let mut stream = TcpStream::connect(server_address)?;
     stream.write_all(email.as_bytes())?;
     let mut buffer = [0; 1024];
