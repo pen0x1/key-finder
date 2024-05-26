@@ -12,20 +12,17 @@ fn main() {
         println!("1. Recover Keys");
         println!("2. Exit");
         let mut choice = String::new();
-        std::io::stdin()
+
+        io::stdin()
             .read_line(&mut choice)
             .expect("Failed to read line");
 
         match choice.trim() {
-            "1" => {
-                if let Err(e) = recover_keys(&server_address) {
-                    eprintln!("Error: {}", e);
-                }
-            },
+            "1" => recover_keys(&server_address).unwrap_or_else(|e| eprintln!("Error: {}", e)),
             "2" => {
                 println!("Exiting KeyFinder...");
                 break;
-            },
+            }
             _ => println!("Invalid option."),
         }
     }
@@ -40,7 +37,7 @@ fn recover_keys(server_address: &str) -> Result<(), Box<dyn std::error::Error>> 
     println!("Enter your email associated with the keys:");
     let mut email = String::new();
     io::stdin().read_line(&mut email)?;
-    let email = email.trim(); 
+    let email = email.trim();
 
     if !email.contains('@') {
         eprintln!("Invalid email format. Please try again.");
@@ -49,9 +46,11 @@ fn recover_keys(server_address: &str) -> Result<(), Box<dyn std::error::Error>> 
 
     let mut stream = TcpStream::connect(server_address)?;
     stream.write_all(email.as_bytes())?;
+
     let mut buffer = [0; 1024];
     let bytes_read = stream.read(&mut buffer)?;
-    let response = str::from_utf8(&buffer[..bytes_read])?;
+    let response = str::from_utf8(&buffer[..bytes_live])?;
+    
     println!("Server response: {}", response);
     Ok(())
 }
